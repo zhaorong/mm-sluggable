@@ -3,8 +3,19 @@ require 'mongo_mapper'
 module MongoMapper
   module Plugins
     module Sluggable
-      def self.included(model)
-        model.plugin self
+      def self.configure(model)
+        class << model
+          alias_method :origin_find, :find
+          def find(*args)
+            arg_f = args.first
+            if (args.size == 1) && arg_f.is_a?(String) && ( arg_f !~ /^[0-9a-f]{24}$/i )
+              options = slug_options
+              first options[:key] => arg_f
+            else
+              origin_find *args
+            end
+          end
+        end
       end
 
       module ClassMethods
@@ -17,7 +28,8 @@ module MongoMapper
             :index        => true,
             :method       => :parameterize,
             :scope        => nil,
-            :callback     => :before_validation_on_create
+            :callback     => :before_validation_on_create,
+            :force        => false
           }.merge(options)
 
           key slug_options[:key], String, :index => slug_options[:index]
@@ -29,7 +41,8 @@ module MongoMapper
       module InstanceMethods
         def set_slug
           options = self.class.slug_options
-          return unless self.send(options[:key]).blank?
+          need_set_slug = self.send(options[:key]).blank? || (options[:force] && self.send(:"#{options[:to_slug]}_changed?"))
+          return unless need_set_slug
 
           to_slug = self[options[:to_slug]]
           return if to_slug.blank?
@@ -48,6 +61,11 @@ module MongoMapper
           end
 
           self.send(:"#{options[:key]}=", the_slug)
+        end
+        
+        def to_param
+          options = self.class.slug_options
+          ( self.send(options[:key]) || self.id ).to_s
         end
       end
     end

@@ -25,6 +25,7 @@ Available options are:
 * :index - whether to add an index for the slug (default - true)
 * :method - what method to call on the field to sluggify it (default - :parameterize)
 * :callback - when to trigger the slugging (default - :before_validation_on_create)
+* :force - whether to reset the slug key on the sluggable feild is changed (default - false)
 
 Eg.
 

@@ -5,7 +5,7 @@ require 'rubygems'
 gem 'rspec'
 
 require 'mm-sluggable'
-require 'spec'
+require 'rspec'
 
 MongoMapper.database = 'mm-sluggable-spec'
 
@@ -24,5 +24,5 @@ def article_class
   klass
 end
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
 end
